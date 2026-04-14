@@ -20,9 +20,11 @@ function AtomSlot({ atom, slotIndex, defaultColor, hovered }) {
   const isTier1Hover  = hovered !== null && hovered.tierIndex === 0
 
   // Ox box only reacts to tier-1 hovers
-  const oxBoxColor  = (isHighlighted && isTier1Hover) ? hovered.bracket.color : defaultColor
-  const symbolColor = isHighlighted ? hovered.bracket.color : '#f1f5f9'
-  const subColor    = isHighlighted ? hovered.bracket.color : '#94a3b8'
+  // Ox box: only reacts (color + visible) on tier-1 hover
+  const oxBoxColor   = (isHighlighted && isTier1Hover) ? hovered.bracket.color : defaultColor
+  const oxBoxOpacity = (hovered !== null && !isTier1Hover) ? 0 : 1
+  const symbolColor  = isHighlighted ? hovered.bracket.color : '#f1f5f9'
+  const subColor     = isHighlighted ? hovered.bracket.color : '#94a3b8'
 
   return (
     <div style={{
@@ -44,7 +46,8 @@ function AtomSlot({ atom, slotIndex, defaultColor, hovered }) {
         textAlign: 'center',
         letterSpacing: '0.03em',
         marginBottom: 5,
-        transition: 'border-color 0.18s ease, color 0.18s ease',
+        opacity: oxBoxOpacity,
+        transition: 'border-color 0.18s ease, color 0.18s ease, opacity 0.18s ease',
       }}>
         {fmt(atom.oxidationState)}
       </div>
@@ -87,10 +90,12 @@ function TierRow({ tier, tierIndex, numSlots, hovered, childBrackets, onHover })
           const left     = s * SLOT_W + PAD
           const right    = (e + 1) * SLOT_W - PAD
           const w        = right - left
-          const isActive = hovered !== null && hovered.bracket === b
-          const isChild  = childBrackets.has(b)
-          const lit      = isActive || isChild
-          const opacity  = hovered !== null ? (lit ? 1 : 0.15) : 1
+          const isActive   = hovered !== null && hovered.bracket === b
+          const isChild    = childBrackets.has(b)
+          // Arm: only the active bracket is fully lit; child + others all dim equally
+          const armOpacity = hovered !== null ? (isActive ? 1 : 0.15) : 1
+          // Label: active AND child brackets show their number at full opacity
+          const lblOpacity = hovered !== null ? ((isActive || isChild) ? 1 : 0.15) : 1
 
           return (
             <div
@@ -105,8 +110,6 @@ function TierRow({ tier, tierIndex, numSlots, hovered, childBrackets, onHover })
                 flexDirection: 'column',
                 alignItems: 'center',
                 cursor: 'default',
-                opacity,
-                transition: 'opacity 0.18s ease',
               }}
               onMouseEnter={() => onHover({ bracket: b, tierIndex })}
               onMouseLeave={() => onHover(null)}
@@ -118,6 +121,8 @@ function TierRow({ tier, tierIndex, numSlots, hovered, childBrackets, onHover })
                 borderRight:  `2px solid ${b.color}`,
                 borderBottom: `2px solid ${b.color}`,
                 borderRadius: '0 0 4px 4px',
+                opacity: armOpacity,
+                transition: 'opacity 0.18s ease',
               }} />
               <div style={{
                 color: b.color,
@@ -126,6 +131,8 @@ function TierRow({ tier, tierIndex, numSlots, hovered, childBrackets, onHover })
                 marginTop: 5,
                 userSelect: 'none',
                 letterSpacing: '0.02em',
+                opacity: lblOpacity,
+                transition: 'opacity 0.18s ease',
               }}>
                 {fmt(b.total)}
               </div>
