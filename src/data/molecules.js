@@ -333,10 +333,11 @@ export const MOLECULES = {
   Mg3PO42: {
     difficulty: 'hard', name: 'Magnesium Phosphate', formula: 'Mg₃(PO₄)₂',
     atoms: [
-      { symbol: 'Mg', subscript: 3, oxidationState: +2 },  // 3 Mg²⁺
-      { symbol: 'P',  subscript: 2, oxidationState: +5 },  // 2 P in 2 PO₄
-      { symbol: 'O',  subscript: 8, oxidationState: -2 },  // 8 O in 2 PO₄
+      { symbol: 'Mg', subscript: 3,    oxidationState: +2 },  // 3 Mg²⁺
+      { symbol: 'P',  subscript: null, oxidationState: +5 },  // 1 P per PO₄
+      { symbol: 'O',  subscript: 4,    oxidationState: -2 },  // 4 O per PO₄
     ],
+    polyIonGroups: [{ slots: [1, 2], groupSubscript: 2 }],
     tiers: [
       // Tier 1: total for each element group
       { label: 'Element',   brackets: [
@@ -351,11 +352,11 @@ export const MOLECULES = {
       ] },
       // Tier 3: combined charge of all instances of each ion
       { label: 'Ion Group', brackets: [
-        { slots: [0],       total:  +6, color: C.teal   },  // 3 Mg²⁺ total
-        { slots: [1, 2],    total:  -6, color: C.purple },  // 2 PO₄³⁻ total
+        { slots: [0],          total:  +6, color: C.teal   },  // 3 Mg²⁺ total
+        { slots: [1, 2],       total:  -6, color: C.purple, groupRight: true },  // 2 PO₄³⁻ total
       ] },
       { label: 'Molecule',  brackets: [
-        { slots: [0, 1, 2], total:   0, color: C.yellow },
+        { slots: [0, 1, 2], total:   0, color: C.yellow, groupRight: true },
       ] },
     ],
   },
@@ -364,9 +365,10 @@ export const MOLECULES = {
     difficulty: 'hard', name: 'Calcium Nitrate', formula: 'Ca(NO₃)₂',
     atoms: [
       { symbol: 'Ca', subscript: null, oxidationState: +2 },  // 1 Ca²⁺
-      { symbol: 'N',  subscript: 2,    oxidationState: +5 },  // 2 N in 2 NO₃
-      { symbol: 'O',  subscript: 6,    oxidationState: -2 },  // 6 O in 2 NO₃
+      { symbol: 'N',  subscript: null, oxidationState: +5 },  // 1 N per NO₃
+      { symbol: 'O',  subscript: 3,    oxidationState: -2 },  // 3 O per NO₃
     ],
+    polyIonGroups: [{ slots: [1, 2], groupSubscript: 2 }],
     tiers: [
       { label: 'Element',   brackets: [
         { slots: [0],       total:  +2, color: C.teal   },  // 1×(+2)
@@ -378,11 +380,11 @@ export const MOLECULES = {
         { slots: [1, 2],    total:  -1, color: C.purple },  // one NO₃⁻
       ] },
       { label: 'Ion Group', brackets: [
-        { slots: [0],       total:  +2, color: C.teal   },  // 1 Ca²⁺ total
-        { slots: [1, 2],    total:  -2, color: C.purple },  // 2 NO₃⁻ total
+        { slots: [0],          total:  +2, color: C.teal   },  // 1 Ca²⁺ total
+        { slots: [1, 2],       total:  -2, color: C.purple, groupRight: true },  // 2 NO₃⁻ total
       ] },
       { label: 'Molecule',  brackets: [
-        { slots: [0, 1, 2], total:   0, color: C.yellow },
+        { slots: [0, 1, 2], total:   0, color: C.yellow, groupRight: true },
       ] },
     ],
   },
@@ -391,9 +393,10 @@ export const MOLECULES = {
     difficulty: 'hard', name: 'Aluminum Hydroxide', formula: 'Al(OH)₃',
     atoms: [
       { symbol: 'Al', subscript: null, oxidationState: +3 },  // 1 Al³⁺
-      { symbol: 'O',  subscript: 3,    oxidationState: -2 },  // 3 O in 3 OH
-      { symbol: 'H',  subscript: 3,    oxidationState: +1 },  // 3 H in 3 OH
+      { symbol: 'O',  subscript: null, oxidationState: -2 },  // 1 O per OH
+      { symbol: 'H',  subscript: null, oxidationState: +1 },  // 1 H per OH
     ],
+    polyIonGroups: [{ slots: [1, 2], groupSubscript: 3 }],
     tiers: [
       { label: 'Element',   brackets: [
         { slots: [0],       total: +3, color: C.teal   },  // 1×(+3)
@@ -405,11 +408,11 @@ export const MOLECULES = {
         { slots: [1, 2],    total: -1, color: C.purple },  // one OH⁻
       ] },
       { label: 'Ion Group', brackets: [
-        { slots: [0],       total: +3, color: C.teal   },  // 1 Al³⁺ total
-        { slots: [1, 2],    total: -3, color: C.purple },  // 3 OH⁻ total
+        { slots: [0],          total: +3, color: C.teal   },  // 1 Al³⁺ total
+        { slots: [1, 2],       total: -3, color: C.purple, groupRight: true },  // 3 OH⁻ total
       ] },
       { label: 'Molecule',  brackets: [
-        { slots: [0, 1, 2], total:  0, color: C.yellow },
+        { slots: [0, 1, 2], total:  0, color: C.yellow, groupRight: true },
       ] },
     ],
   },

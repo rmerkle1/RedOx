@@ -5,6 +5,7 @@ const SLOT_W       = 110
 const ARM_H        = 18
 const TIER_H       = 72
 const TIER_LABEL_W = 88
+const GROUP_SUB_W  = 30   // extra width for closing ")ₙ" outside polyatomic group
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -239,9 +240,8 @@ function AtomSlot({ atom, slotIndex, defaultColor, hovered, oxInputs, activeInpu
 
 // ─── TierRow ──────────────────────────────────────────────────────────────────
 
-function TierRow({ tier, tierIndex, numTiers, numSlots, hovered, childBrackets,
+function TierRow({ tier, tierIndex, numTiers, totalW, hovered, childBrackets,
                    bracketInputs, activeInput, onOpenSlider, submitted, results, onHover }) {
-  const totalW  = numSlots * SLOT_W
   const PAD     = 8
   const [sliderMin, sliderMax] = getSliderRange(tierIndex, numTiers)
 
@@ -254,7 +254,7 @@ function TierRow({ tier, tierIndex, numTiers, numSlots, hovered, childBrackets,
           const s        = Math.min(...b.slots)
           const e        = Math.max(...b.slots)
           const left     = s * SLOT_W + PAD
-          const right    = (e + 1) * SLOT_W - PAD
+          const right    = (e + 1) * SLOT_W - PAD + (b.groupRight ? GROUP_SUB_W : 0)
           const w        = right - left
           const isActive = hovered !== null && hovered.bracket === b
           const isChild  = childBrackets.has(b)
@@ -440,7 +440,8 @@ export default function OxidationStates() {
   const mol       = current.mol
   const numSlots  = mol.atoms.length
   const numTiers  = mol.tiers.length
-  const totalW    = numSlots * SLOT_W
+  const numGroups = mol.polyIonGroups?.length ?? 0
+  const totalW    = numSlots * SLOT_W + numGroups * GROUP_SUB_W
 
   const atomDefaultColors = mol.atoms.map((_, i) => {
     const b = mol.tiers[0].brackets.find(b => b.slots.includes(i))
@@ -522,71 +523,120 @@ export default function OxidationStates() {
         </div>
       </div>
 
-      {/* Atom row */}
-      <div style={{ display: 'flex', width: totalW + TIER_LABEL_W }}>
-        <div style={{ display: 'flex', width: totalW }}>
-          {mol.atoms.map((atom, i) => (
-            <AtomSlot
-              key={i}
-              atom={atom}
-              slotIndex={i}
-              defaultColor={atomDefaultColors[i]}
-              hovered={hovered}
-              oxInputs={oxInputs}
-              activeInput={activeInput}
-              onOpenSlider={handleOpenSlider}
-              submitted={submitted}
-              results={results}
-            />
-          ))}
+      {/* Molecule content + buttons side by side */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 28 }}>
+
+        {/* Left: atom row + tier rows */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+
+          {/* Atom row — with optional polyatomic-group parentheses */}
+          <div style={{ display: 'flex', width: totalW + TIER_LABEL_W }}>
+            <div style={{ display: 'flex', width: totalW }}>
+              {mol.atoms.map((atom, i) => {
+                const openGroup  = mol.polyIonGroups?.find(g => g.slots[0] === i)
+                const closeGroup = mol.polyIonGroups?.find(g => g.slots[g.slots.length - 1] === i)
+                return (
+                  <React.Fragment key={i}>
+                    {/* Zero-width open-paren overlay before first grouped atom */}
+                    {openGroup && (
+                      <div style={{ width: 0, overflow: 'visible', position: 'relative', flexShrink: 0 }}>
+                        <div style={{
+                          position: 'absolute',
+                          left: -6,
+                          top: 32,
+                          fontSize: '3rem',
+                          fontWeight: 300,
+                          color: '#94a3b8',
+                          lineHeight: 1,
+                          userSelect: 'none',
+                        }}>
+                          (
+                        </div>
+                      </div>
+                    )}
+                    <AtomSlot
+                      atom={atom}
+                      slotIndex={i}
+                      defaultColor={atomDefaultColors[i]}
+                      hovered={hovered}
+                      oxInputs={oxInputs}
+                      activeInput={activeInput}
+                      onOpenSlider={handleOpenSlider}
+                      submitted={submitted}
+                      results={results}
+                    />
+                    {/* Closing ")ₙ" after last grouped atom — takes GROUP_SUB_W space */}
+                    {closeGroup && (
+                      <div style={{
+                        width: GROUP_SUB_W,
+                        flexShrink: 0,
+                        display: 'flex',
+                        alignItems: 'flex-end',
+                        paddingBottom: 6,
+                        fontSize: '3rem',
+                        fontWeight: 300,
+                        color: '#94a3b8',
+                        lineHeight: 1,
+                        userSelect: 'none',
+                      }}>
+                        )<sub style={{ fontSize: '1.5rem', lineHeight: 0 }}>{closeGroup.groupSubscript}</sub>
+                      </div>
+                    )}
+                  </React.Fragment>
+                )
+              })}
+            </div>
+            <div style={{ width: TIER_LABEL_W }} />
+          </div>
+
+          <div style={{ height: 20 }} />
+
+          {/* Tier rows */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {mol.tiers.map((tier, i) => (
+              <TierRow
+                key={i}
+                tier={tier}
+                tierIndex={i}
+                numTiers={numTiers}
+                totalW={totalW}
+                hovered={hovered}
+                childBrackets={childBrackets}
+                bracketInputs={bracketInputs}
+                activeInput={activeInput}
+                onOpenSlider={handleOpenSlider}
+                submitted={submitted}
+                results={results}
+                onHover={setHovered}
+              />
+            ))}
+          </div>
+
         </div>
-        <div style={{ width: TIER_LABEL_W }} />
-      </div>
 
-      <div style={{ height: 20 }} />
+        {/* Right: vertically stacked buttons */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingTop: 100, flexShrink: 0 }}>
+          <button
+            onClick={handleSubmit}
+            disabled={submitted}
+            style={{ ...btnBase, background: '#00addb', color: '#0f172a', opacity: submitted ? 0.4 : 1, cursor: submitted ? 'default' : 'pointer' }}
+          >
+            Submit
+          </button>
+          <button
+            onClick={() => pickNext(difficulty)}
+            style={{ ...btnBase, background: '#85c441', color: '#0f172a' }}
+          >
+            Next
+          </button>
+          <button
+            onClick={handleReset}
+            style={{ ...btnBase, background: '#1e293b', border: '1px solid #334155', color: '#94a3b8' }}
+          >
+            Reset
+          </button>
+        </div>
 
-      {/* Tier rows */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {mol.tiers.map((tier, i) => (
-          <TierRow
-            key={i}
-            tier={tier}
-            tierIndex={i}
-            numTiers={numTiers}
-            numSlots={numSlots}
-            hovered={hovered}
-            childBrackets={childBrackets}
-            bracketInputs={bracketInputs}
-            activeInput={activeInput}
-            onOpenSlider={handleOpenSlider}
-            submitted={submitted}
-            results={results}
-            onHover={setHovered}
-          />
-        ))}
-      </div>
-
-      {/* Button bar */}
-      <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginTop: 28 }}>
-        <button
-          onClick={handleReset}
-          style={{ ...btnBase, background: '#1e293b', border: '1px solid #334155', color: '#94a3b8' }}
-        >
-          Reset
-        </button>
-        <button
-          onClick={handleSubmit}
-          disabled={submitted}
-          style={{ ...btnBase, background: '#00addb', color: '#0f172a', opacity: submitted ? 0.4 : 1, cursor: submitted ? 'default' : 'pointer' }}
-        >
-          Submit
-        </button>
-        <button
-          onClick={() => pickNext(difficulty)}
-          style={{ ...btnBase, background: '#85c441', color: '#0f172a' }}
-        >
-          Next
-        </button>
       </div>
 
       {/* Slider panel */}
