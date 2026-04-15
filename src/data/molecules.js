@@ -9,8 +9,10 @@ const C = {
 }
 
 // ─── EASY ──────────────────────────────────────────────────────────────────
-// Elemental molecules → 1 tier (Molecule). Monoatomic ions → 1 tier (Ion).
-// Simple covalent and ionic molecules → 2–3 tiers (Element [, Ion], Molecule).
+// Elemental molecules:    1 tier  (Molecule)
+// Monoatomic ions:        1 tier  (Ion)
+// Covalent molecules:     2 tiers (Element, Molecule)
+// Easy ionic compounds:   2 tiers (Ion, Molecule)  — no Element tier; all atoms are ionic
 
 export const MOLECULES = {
 
@@ -70,6 +72,8 @@ export const MOLECULES = {
     ],
   },
 
+  // Covalent molecules — Element tier for each nonmetal, then Molecule
+
   H2O: {
     difficulty: 'easy', name: 'Water', formula: 'H₂O',
     atoms: [
@@ -121,6 +125,8 @@ export const MOLECULES = {
     ],
   },
 
+  // Easy ionic compounds — no Element tier; atoms are monoatomic ions
+
   NaCl: {
     difficulty: 'easy', name: 'Sodium Chloride', formula: 'NaCl',
     atoms: [
@@ -128,10 +134,6 @@ export const MOLECULES = {
       { symbol: 'Cl', subscript: null, oxidationState: -1 },
     ],
     tiers: [
-      { label: 'Element',  brackets: [
-        { slots: [0], total: +1, color: C.teal   },
-        { slots: [1], total: -1, color: C.purple },
-      ] },
       { label: 'Ion',      brackets: [
         { slots: [0], total: +1, color: C.teal   },
         { slots: [1], total: -1, color: C.purple },
@@ -149,10 +151,6 @@ export const MOLECULES = {
       { symbol: 'Cl', subscript: 2,    oxidationState: -1 },
     ],
     tiers: [
-      { label: 'Element',  brackets: [
-        { slots: [0], total: +2, color: C.teal   },
-        { slots: [1], total: -2, color: C.purple },
-      ] },
       { label: 'Ion',      brackets: [
         { slots: [0], total: +2, color: C.teal   },
         { slots: [1], total: -2, color: C.purple },
@@ -170,10 +168,6 @@ export const MOLECULES = {
       { symbol: 'O',  subscript: null, oxidationState: -2 },
     ],
     tiers: [
-      { label: 'Element',  brackets: [
-        { slots: [0], total: +2, color: C.teal   },
-        { slots: [1], total: -2, color: C.purple },
-      ] },
       { label: 'Ion',      brackets: [
         { slots: [0], total: +2, color: C.teal   },
         { slots: [1], total: -2, color: C.purple },
@@ -185,7 +179,9 @@ export const MOLECULES = {
   },
 
   // ─── MEDIUM ────────────────────────────────────────────────────────────────
-  // Molecules with a polyatomic ion — 3 tiers: Element, Ion, Molecule.
+  // 3 tiers: Element (nonmetals only), Ion, Molecule.
+  // Monoatomic metal ions have NO bracket in the Element tier.
+  // Covalent nonmetals inside the polyatomic ion DO get Element brackets.
 
   MgSO4: {
     difficulty: 'medium', name: 'Magnesium Sulfate', formula: 'MgSO₄',
@@ -196,13 +192,13 @@ export const MOLECULES = {
     ],
     tiers: [
       { label: 'Element',  brackets: [
-        { slots: [0],       total: +2, color: C.teal   },
-        { slots: [1],       total: +6, color: C.purple },
-        { slots: [2],       total: -8, color: C.purple },
+        // No Mg bracket — Mg²⁺ is a monoatomic ion
+        { slots: [1], total: +6, color: C.purple },  // S in SO₄
+        { slots: [2], total: -8, color: C.purple },  // O₄ in SO₄
       ] },
       { label: 'Ion',      brackets: [
-        { slots: [0],       total: +2, color: C.teal   },
-        { slots: [1, 2],    total: -2, color: C.purple },
+        { slots: [0],       total: +2, color: C.teal   },  // Mg²⁺
+        { slots: [1, 2],    total: -2, color: C.purple },  // SO₄²⁻
       ] },
       { label: 'Molecule', brackets: [
         { slots: [0, 1, 2], total:  0, color: C.yellow },
@@ -219,13 +215,13 @@ export const MOLECULES = {
     ],
     tiers: [
       { label: 'Element',  brackets: [
-        { slots: [0],       total: +2, color: C.teal   },
-        { slots: [1],       total: +6, color: C.purple },
-        { slots: [2],       total: -8, color: C.purple },
+        { slots: [0], total: +2, color: C.teal   },  // H₂ (covalent nonmetal)
+        { slots: [1], total: +6, color: C.purple },  // S
+        { slots: [2], total: -8, color: C.purple },  // O₄
       ] },
-      { label: 'Group',    brackets: [
-        { slots: [0],       total: +2, color: C.teal   },
-        { slots: [1, 2],    total: -2, color: C.purple },
+      { label: 'Ion',      brackets: [
+        { slots: [0],       total: +2, color: C.teal   },  // H₂ group
+        { slots: [1, 2],    total: -2, color: C.purple },  // SO₄²⁻
       ] },
       { label: 'Molecule', brackets: [
         { slots: [0, 1, 2], total:  0, color: C.yellow },
@@ -242,13 +238,13 @@ export const MOLECULES = {
     ],
     tiers: [
       { label: 'Element',  brackets: [
-        { slots: [0],       total: +1, color: C.teal   },
-        { slots: [1],       total: +5, color: C.purple },
-        { slots: [2],       total: -6, color: C.purple },
+        { slots: [0], total: +1, color: C.teal   },  // H (covalent nonmetal)
+        { slots: [1], total: +5, color: C.purple },  // N
+        { slots: [2], total: -6, color: C.purple },  // O₃
       ] },
-      { label: 'Group',    brackets: [
-        { slots: [0],       total: +1, color: C.teal   },
-        { slots: [1, 2],    total: -1, color: C.purple },
+      { label: 'Ion',      brackets: [
+        { slots: [0],       total: +1, color: C.teal   },  // H⁺
+        { slots: [1, 2],    total: -1, color: C.purple },  // NO₃⁻
       ] },
       { label: 'Molecule', brackets: [
         { slots: [0, 1, 2], total:  0, color: C.yellow },
@@ -265,13 +261,13 @@ export const MOLECULES = {
     ],
     tiers: [
       { label: 'Element',  brackets: [
-        { slots: [0],       total: +1, color: C.teal   },
-        { slots: [1],       total: -2, color: C.purple },
-        { slots: [2],       total: +1, color: C.purple },
+        // No Na bracket — Na⁺ is a monoatomic ion
+        { slots: [1], total: -2, color: C.purple },  // O in OH
+        { slots: [2], total: +1, color: C.purple },  // H in OH
       ] },
       { label: 'Ion',      brackets: [
-        { slots: [0],       total: +1, color: C.teal   },
-        { slots: [1, 2],    total: -1, color: C.purple },
+        { slots: [0],       total: +1, color: C.teal   },  // Na⁺
+        { slots: [1, 2],    total: -1, color: C.purple },  // OH⁻
       ] },
       { label: 'Molecule', brackets: [
         { slots: [0, 1, 2], total:  0, color: C.yellow },
@@ -288,13 +284,13 @@ export const MOLECULES = {
     ],
     tiers: [
       { label: 'Element',  brackets: [
-        { slots: [0],       total: +2, color: C.teal   },
-        { slots: [1],       total: +6, color: C.purple },
-        { slots: [2],       total: -8, color: C.purple },
+        // No Na bracket — Na⁺ is a monoatomic ion
+        { slots: [1], total: +6, color: C.purple },  // S in SO₄
+        { slots: [2], total: -8, color: C.purple },  // O₄ in SO₄
       ] },
       { label: 'Ion',      brackets: [
-        { slots: [0],       total: +2, color: C.teal   },
-        { slots: [1, 2],    total: -2, color: C.purple },
+        { slots: [0],       total: +2, color: C.teal   },  // Na₂ (2 × Na⁺)
+        { slots: [1, 2],    total: -2, color: C.purple },  // SO₄²⁻
       ] },
       { label: 'Molecule', brackets: [
         { slots: [0, 1, 2], total:  0, color: C.yellow },
@@ -311,13 +307,13 @@ export const MOLECULES = {
     ],
     tiers: [
       { label: 'Element',  brackets: [
-        { slots: [0],       total: +1, color: C.teal   },
-        { slots: [1],       total: +7, color: C.purple },
-        { slots: [2],       total: -8, color: C.purple },
+        // No K bracket — K⁺ is a monoatomic ion
+        { slots: [1], total: +7, color: C.purple },  // Mn in MnO₄
+        { slots: [2], total: -8, color: C.purple },  // O₄ in MnO₄
       ] },
       { label: 'Ion',      brackets: [
-        { slots: [0],       total: +1, color: C.teal   },
-        { slots: [1, 2],    total: -1, color: C.purple },
+        { slots: [0],       total: +1, color: C.teal   },  // K⁺
+        { slots: [1, 2],    total: -1, color: C.purple },  // MnO₄⁻
       ] },
       { label: 'Molecule', brackets: [
         { slots: [0, 1, 2], total:  0, color: C.yellow },
@@ -326,37 +322,40 @@ export const MOLECULES = {
   },
 
   // ─── HARD ──────────────────────────────────────────────────────────────────
-  // 4-tier structure: Element → Ion (per-ion charge) → Ion Group → Molecule.
-  // The "Ion" tier shows the charge of one polyatomic ion unit.
-  // The "Ion Group" tier shows the combined charge of all instances of each ion.
+  // 4-tier structure: Element → Polyatomic Ion → Ions → Molecule.
+  //
+  // Element tier:        nonmetal elements inside parens only (per one polyatomic unit).
+  //                      Metal / monoatomic ions have NO bracket here.
+  // Polyatomic Ion tier: charge of ONE polyatomic ion unit.
+  //                      Metal / monoatomic ions have NO bracket here.
+  // Ions tier:           combined charge of each ion group across the whole molecule
+  //                      (metal ions included here).
+  // Molecule tier:       total (always 0).
 
   Mg3PO42: {
     difficulty: 'hard', name: 'Magnesium Phosphate', formula: 'Mg₃(PO₄)₂',
     atoms: [
-      { symbol: 'Mg', subscript: 3,    oxidationState: +2 },  // 3 Mg²⁺
-      { symbol: 'P',  subscript: null, oxidationState: +5 },  // 1 P per PO₄
-      { symbol: 'O',  subscript: 4,    oxidationState: -2 },  // 4 O per PO₄
+      { symbol: 'Mg', subscript: 3,    oxidationState: +2 },  // 3 Mg²⁺ (ionic)
+      { symbol: 'P',  subscript: null, oxidationState: +5 },  // 1 P per PO₄ (covalent)
+      { symbol: 'O',  subscript: 4,    oxidationState: -2 },  // 4 O per PO₄ (covalent)
     ],
     polyIonGroups: [{ slots: [1, 2], groupSubscript: 2 }],
     tiers: [
-      // Tier 1: total for each element group
-      { label: 'Element',   brackets: [
-        { slots: [0],       total:  +6, color: C.teal   },  // 3×(+2) — outside parens, full total
-        { slots: [1],       total:  +5, color: C.purple },  // 1×(+5) — per one PO₄ unit
-        { slots: [2],       total:  -8, color: C.purple },  // 4×(−2) — per one PO₄ unit
+      { label: 'Element',       brackets: [
+        // No Mg bracket — Mg²⁺ is ionic
+        { slots: [1], total: +5, color: C.purple },  // P in one PO₄
+        { slots: [2], total: -8, color: C.purple },  // O₄ in one PO₄
       ] },
-      // Tier 2: charge of ONE polyatomic ion unit
       { label: 'Polyatomic Ion', brackets: [
-        { slots: [0],       total:  +2, color: C.teal   },  // one Mg²⁺
-        { slots: [1, 2],    total:  -3, color: C.purple },  // one PO₄³⁻
+        // No Mg bracket — not polyatomic
+        { slots: [1, 2], total: -3, color: C.purple },  // one PO₄³⁻
       ] },
-      // Tier 3: combined charge of all instances of each ion
-      { label: 'Ions',     brackets: [
-        { slots: [0],          total:  +6, color: C.teal   },  // 3 Mg²⁺ total
-        { slots: [1, 2],       total:  -6, color: C.purple, groupRight: true },  // 2 PO₄³⁻ total
+      { label: 'Ions',          brackets: [
+        { slots: [0],       total:  +6, color: C.teal             },  // Mg₃ (3 × +2)
+        { slots: [1, 2],    total:  -6, color: C.purple, groupRight: true },  // (PO₄)₂ (2 × −3)
       ] },
-      { label: 'Molecule',  brackets: [
-        { slots: [0, 1, 2], total:   0, color: C.yellow, groupRight: true },
+      { label: 'Molecule',      brackets: [
+        { slots: [0, 1, 2], total: 0, color: C.yellow, groupRight: true },
       ] },
     ],
   },
@@ -364,27 +363,27 @@ export const MOLECULES = {
   CaNO32: {
     difficulty: 'hard', name: 'Calcium Nitrate', formula: 'Ca(NO₃)₂',
     atoms: [
-      { symbol: 'Ca', subscript: null, oxidationState: +2 },  // 1 Ca²⁺
-      { symbol: 'N',  subscript: null, oxidationState: +5 },  // 1 N per NO₃
-      { symbol: 'O',  subscript: 3,    oxidationState: -2 },  // 3 O per NO₃
+      { symbol: 'Ca', subscript: null, oxidationState: +2 },  // 1 Ca²⁺ (ionic)
+      { symbol: 'N',  subscript: null, oxidationState: +5 },  // 1 N per NO₃ (covalent)
+      { symbol: 'O',  subscript: 3,    oxidationState: -2 },  // 3 O per NO₃ (covalent)
     ],
     polyIonGroups: [{ slots: [1, 2], groupSubscript: 2 }],
     tiers: [
-      { label: 'Element',   brackets: [
-        { slots: [0],       total:  +2, color: C.teal   },  // 1×(+2) — outside parens, full total
-        { slots: [1],       total:  +5, color: C.purple },  // 1×(+5) — per one NO₃ unit
-        { slots: [2],       total:  -6, color: C.purple },  // 3×(−2) — per one NO₃ unit
+      { label: 'Element',       brackets: [
+        // No Ca bracket — Ca²⁺ is ionic
+        { slots: [1], total: +5, color: C.purple },  // N in one NO₃
+        { slots: [2], total: -6, color: C.purple },  // O₃ in one NO₃
       ] },
       { label: 'Polyatomic Ion', brackets: [
-        { slots: [0],       total:  +2, color: C.teal   },  // one Ca²⁺
-        { slots: [1, 2],    total:  -1, color: C.purple },  // one NO₃⁻
+        // No Ca bracket — not polyatomic
+        { slots: [1, 2], total: -1, color: C.purple },  // one NO₃⁻
       ] },
-      { label: 'Ions',     brackets: [
-        { slots: [0],          total:  +2, color: C.teal   },  // 1 Ca²⁺ total
-        { slots: [1, 2],       total:  -2, color: C.purple, groupRight: true },  // 2 NO₃⁻ total
+      { label: 'Ions',          brackets: [
+        { slots: [0],       total:  +2, color: C.teal             },  // Ca²⁺
+        { slots: [1, 2],    total:  -2, color: C.purple, groupRight: true },  // (NO₃)₂ (2 × −1)
       ] },
-      { label: 'Molecule',  brackets: [
-        { slots: [0, 1, 2], total:   0, color: C.yellow, groupRight: true },
+      { label: 'Molecule',      brackets: [
+        { slots: [0, 1, 2], total: 0, color: C.yellow, groupRight: true },
       ] },
     ],
   },
@@ -392,26 +391,26 @@ export const MOLECULES = {
   AlOH3: {
     difficulty: 'hard', name: 'Aluminum Hydroxide', formula: 'Al(OH)₃',
     atoms: [
-      { symbol: 'Al', subscript: null, oxidationState: +3 },  // 1 Al³⁺
-      { symbol: 'O',  subscript: null, oxidationState: -2 },  // 1 O per OH
-      { symbol: 'H',  subscript: null, oxidationState: +1 },  // 1 H per OH
+      { symbol: 'Al', subscript: null, oxidationState: +3 },  // 1 Al³⁺ (ionic)
+      { symbol: 'O',  subscript: null, oxidationState: -2 },  // 1 O per OH (covalent)
+      { symbol: 'H',  subscript: null, oxidationState: +1 },  // 1 H per OH (covalent)
     ],
     polyIonGroups: [{ slots: [1, 2], groupSubscript: 3 }],
     tiers: [
-      { label: 'Element',   brackets: [
-        { slots: [0],       total: +3, color: C.teal   },  // 1×(+3) — outside parens, full total
-        { slots: [1],       total: -2, color: C.purple },  // 1×(−2) — per one OH unit
-        { slots: [2],       total: +1, color: C.purple },  // 1×(+1) — per one OH unit
+      { label: 'Element',       brackets: [
+        // No Al bracket — Al³⁺ is ionic
+        { slots: [1], total: -2, color: C.purple },  // O in one OH
+        { slots: [2], total: +1, color: C.purple },  // H in one OH
       ] },
       { label: 'Polyatomic Ion', brackets: [
-        { slots: [0],       total: +3, color: C.teal   },  // one Al³⁺
-        { slots: [1, 2],    total: -1, color: C.purple },  // one OH⁻
+        // No Al bracket — not polyatomic
+        { slots: [1, 2], total: -1, color: C.purple },  // one OH⁻
       ] },
-      { label: 'Ions',     brackets: [
-        { slots: [0],          total: +3, color: C.teal   },  // 1 Al³⁺ total
-        { slots: [1, 2],       total: -3, color: C.purple, groupRight: true },  // 3 OH⁻ total
+      { label: 'Ions',          brackets: [
+        { slots: [0],       total: +3, color: C.teal             },  // Al³⁺
+        { slots: [1, 2],    total: -3, color: C.purple, groupRight: true },  // (OH)₃ (3 × −1)
       ] },
-      { label: 'Molecule',  brackets: [
+      { label: 'Molecule',      brackets: [
         { slots: [0, 1, 2], total:  0, color: C.yellow, groupRight: true },
       ] },
     ],

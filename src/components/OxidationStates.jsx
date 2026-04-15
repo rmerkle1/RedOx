@@ -249,23 +249,16 @@ function AtomSlot({ atom, slotIndex, defaultColor, hovered, oxInputs, activeInpu
 
 // ─── TierRow ──────────────────────────────────────────────────────────────────
 
-function TierRow({ tier, tierIndex, numTiers, totalW, polyIonGroups, hovered, childBrackets,
+function TierRow({ tier, tierIndex, numTiers, totalW, hovered, childBrackets,
                    bracketInputs, activeInput, onOpenSlider, submitted, results, onHover }) {
   const PAD     = 8
   const [sliderMin, sliderMax] = getSliderRange(tierIndex, numTiers)
-  const isPolyatomicTier = tier.label === 'Polyatomic Ion'
 
   return (
     <div style={{ display: 'flex', alignItems: 'center' }}>
       {/* Bracket area */}
       <div style={{ position: 'relative', width: totalW, height: TIER_H, flexShrink: 0 }}>
         {tier.brackets.map((b, i) => {
-          // In the "Polyatomic Ion" tier, skip brackets whose slots are not in any polyIonGroup
-          if (isPolyatomicTier && polyIonGroups) {
-            const inGroup = b.slots.some(s => polyIonGroups.some(g => g.slots.includes(s)))
-            if (!inGroup) return null
-          }
-
           const key      = `${tierIndex}-${i}`
           const s        = Math.min(...b.slots)
           const e        = Math.max(...b.slots)
@@ -638,7 +631,6 @@ export default function OxidationStates() {
                 tierIndex={i}
                 numTiers={numTiers}
                 totalW={totalW}
-                polyIonGroups={mol.polyIonGroups}
                 hovered={hovered}
                 childBrackets={childBrackets}
                 bracketInputs={bracketInputs}
