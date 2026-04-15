@@ -346,12 +346,12 @@ export const MOLECULES = {
         { slots: [2],       total: -16, color: C.purple },  // 8×(−2)
       ] },
       // Tier 2: charge of ONE polyatomic ion unit
-      { label: 'Ion',       brackets: [
+      { label: 'Polyatomic Ion', brackets: [
         { slots: [0],       total:  +2, color: C.teal   },  // one Mg²⁺
         { slots: [1, 2],    total:  -3, color: C.purple },  // one PO₄³⁻
       ] },
       // Tier 3: combined charge of all instances of each ion
-      { label: 'Ion Group', brackets: [
+      { label: 'Ions',     brackets: [
         { slots: [0],          total:  +6, color: C.teal   },  // 3 Mg²⁺ total
         { slots: [1, 2],       total:  -6, color: C.purple, groupRight: true },  // 2 PO₄³⁻ total
       ] },
@@ -375,11 +375,11 @@ export const MOLECULES = {
         { slots: [1],       total: +10, color: C.purple },  // 2×(+5)
         { slots: [2],       total: -12, color: C.purple },  // 6×(−2)
       ] },
-      { label: 'Ion',       brackets: [
+      { label: 'Polyatomic Ion', brackets: [
         { slots: [0],       total:  +2, color: C.teal   },  // one Ca²⁺
         { slots: [1, 2],    total:  -1, color: C.purple },  // one NO₃⁻
       ] },
-      { label: 'Ion Group', brackets: [
+      { label: 'Ions',     brackets: [
         { slots: [0],          total:  +2, color: C.teal   },  // 1 Ca²⁺ total
         { slots: [1, 2],       total:  -2, color: C.purple, groupRight: true },  // 2 NO₃⁻ total
       ] },
@@ -403,11 +403,11 @@ export const MOLECULES = {
         { slots: [1],       total: -6, color: C.purple },  // 3×(−2)
         { slots: [2],       total: +3, color: C.purple },  // 3×(+1)
       ] },
-      { label: 'Ion',       brackets: [
+      { label: 'Polyatomic Ion', brackets: [
         { slots: [0],       total: +3, color: C.teal   },  // one Al³⁺
         { slots: [1, 2],    total: -1, color: C.purple },  // one OH⁻
       ] },
-      { label: 'Ion Group', brackets: [
+      { label: 'Ions',     brackets: [
         { slots: [0],          total: +3, color: C.teal   },  // 1 Al³⁺ total
         { slots: [1, 2],       total: -3, color: C.purple, groupRight: true },  // 3 OH⁻ total
       ] },

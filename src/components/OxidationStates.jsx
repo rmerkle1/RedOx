@@ -31,6 +31,22 @@ function getSliderRange(tierIndex, numTiers) {
   return [-12, 12]
 }
 
+// Pre-populate the last tier's bracket inputs with '0' (molecule total is almost always 0)
+function initialBracketInputs(mol) {
+  const lastIdx = mol.tiers.length - 1
+  const result = {}
+  mol.tiers[lastIdx].brackets.forEach((_, bi) => { result[`${lastIdx}-${bi}`] = '0' })
+  return result
+}
+
+// Deep-equal slots (order-independent)
+function slotsEqual(a, b) {
+  if (a.length !== b.length) return false
+  const sa = [...a].sort((x, y) => x - y)
+  const sb = [...b].sort((x, y) => x - y)
+  return sa.every((v, i) => v === sb[i])
+}
+
 // ─── SliderBox ────────────────────────────────────────────────────────────────
 // Replaces text input — shows the current value and opens the slider on click.
 
@@ -80,7 +96,7 @@ function SliderBox({ value, color, isActive, onClick, submitted, correct, width 
 }
 
 // ─── SliderPanel ──────────────────────────────────────────────────────────────
-// Fixed bottom-center panel that appears when a SliderBox is clicked.
+// Vertical panel, absolutely positioned to the left of the molecule wrapper.
 
 function SliderPanel({ active, currentValue, onChange, onClose }) {
   if (!active) return null
@@ -88,8 +104,8 @@ function SliderPanel({ active, currentValue, onChange, onClose }) {
   const n = currentValue ?? 0
 
   const btnStyle = (c = color) => ({
-    width: 30,
-    height: 30,
+    width: 28,
+    height: 28,
     border: `1px solid ${c}55`,
     borderRadius: 6,
     background: 'transparent',
@@ -103,45 +119,56 @@ function SliderPanel({ active, currentValue, onChange, onClose }) {
     justifyContent: 'center',
     flexShrink: 0,
     transition: 'background 0.1s',
+    padding: 0,
   })
 
   return (
     <div style={{
-      position: 'fixed',
-      bottom: 24,
-      left: '50%',
-      transform: 'translateX(-50%)',
+      position: 'absolute',
+      right: 'calc(100% + 20px)',
+      top: 60,
       background: '#1a2535',
       border: `1px solid ${color}44`,
       borderRadius: 12,
-      padding: '12px 20px',
+      padding: '10px 10px',
       display: 'flex',
+      flexDirection: 'column',
       alignItems: 'center',
-      gap: 12,
-      minWidth: 360,
+      gap: 8,
+      width: 68,
       zIndex: 100,
       boxShadow: '0 8px 40px rgba(0,0,0,0.5)',
     }}>
+      {/* Done / close */}
+      <button style={{ ...btnStyle('#475569'), fontSize: '0.8rem' }} onClick={onClose}>✓</button>
+
       {/* Context label */}
       <span style={{
         color: '#64748b',
-        fontSize: '0.75rem',
+        fontSize: '0.58rem',
         fontWeight: 600,
         letterSpacing: '0.06em',
         textTransform: 'uppercase',
-        minWidth: 70,
-        flexShrink: 0,
+        textAlign: 'center',
+        lineHeight: 1.2,
       }}>
         {label}
       </span>
 
-      {/* − button */}
-      <button
-        style={btnStyle()}
-        onClick={() => onChange(Math.max(min, n - 1))}
-      >−</button>
+      {/* Current value */}
+      <span style={{
+        color,
+        fontWeight: 800,
+        fontSize: '1.1rem',
+        letterSpacing: '0.02em',
+      }}>
+        {fmt(n)}
+      </span>
 
-      {/* Range slider */}
+      {/* + button */}
+      <button style={btnStyle()} onClick={() => onChange(Math.min(max, n + 1))}>+</button>
+
+      {/* Vertical range slider */}
       <input
         type="range"
         min={min}
@@ -149,33 +176,18 @@ function SliderPanel({ active, currentValue, onChange, onClose }) {
         step={1}
         value={n}
         onChange={e => onChange(parseInt(e.target.value))}
-        style={{ flex: 1, accentColor: color, cursor: 'pointer' }}
+        style={{
+          writingMode: 'vertical-lr',
+          direction: 'rtl',
+          WebkitAppearance: 'slider-vertical',
+          height: 160,
+          accentColor: color,
+          cursor: 'pointer',
+        }}
       />
 
-      {/* + button */}
-      <button
-        style={btnStyle()}
-        onClick={() => onChange(Math.min(max, n + 1))}
-      >+</button>
-
-      {/* Current value */}
-      <span style={{
-        color,
-        fontWeight: 800,
-        fontSize: '1.15rem',
-        minWidth: 38,
-        textAlign: 'center',
-        flexShrink: 0,
-        letterSpacing: '0.02em',
-      }}>
-        {fmt(n)}
-      </span>
-
-      {/* Done / close */}
-      <button
-        style={{ ...btnStyle('#475569'), fontSize: '0.85rem', width: 34, height: 30 }}
-        onClick={onClose}
-      >✓</button>
+      {/* − button */}
+      <button style={btnStyle()} onClick={() => onChange(Math.max(min, n - 1))}>−</button>
     </div>
   )
 }
@@ -245,16 +257,23 @@ function AtomSlot({ atom, slotIndex, defaultColor, hovered, oxInputs, activeInpu
 
 // ─── TierRow ──────────────────────────────────────────────────────────────────
 
-function TierRow({ tier, tierIndex, numTiers, totalW, hovered, childBrackets,
+function TierRow({ tier, tierIndex, numTiers, totalW, polyIonGroups, hovered, childBrackets,
                    bracketInputs, activeInput, onOpenSlider, submitted, results, onHover }) {
   const PAD     = 8
   const [sliderMin, sliderMax] = getSliderRange(tierIndex, numTiers)
+  const isPolyatomicTier = tier.label === 'Polyatomic Ion'
 
   return (
     <div style={{ display: 'flex', alignItems: 'center' }}>
       {/* Bracket area */}
       <div style={{ position: 'relative', width: totalW, height: TIER_H, flexShrink: 0 }}>
         {tier.brackets.map((b, i) => {
+          // In the "Polyatomic Ion" tier, skip brackets whose slots are not in any polyIonGroup
+          if (isPolyatomicTier && polyIonGroups) {
+            const inGroup = b.slots.some(s => polyIonGroups.some(g => g.slots.includes(s)))
+            if (!inGroup) return null
+          }
+
           const key      = `${tierIndex}-${i}`
           const s        = Math.min(...b.slots)
           const e        = Math.max(...b.slots)
@@ -344,13 +363,15 @@ function TierRow({ tier, tierIndex, numTiers, totalW, hovered, childBrackets,
 
 export default function OxidationStates() {
   const [difficulty, setDifficulty] = useState('easy')
-  const [current, setCurrent] = useState(() => {
+  // Compute initial molecule once so bracketInputs can reference the same mol
+  const [initMol] = useState(() => {
     const pool = Object.entries(MOLECULES).filter(([, m]) => m.difficulty === 'easy')
     const [key, mol] = pool[Math.floor(Math.random() * pool.length)]
     return { key, mol }
   })
+  const [current, setCurrent] = useState(initMol)
   const [oxInputs,      setOxInputs]      = useState({})
-  const [bracketInputs, setBracketInputs] = useState({})
+  const [bracketInputs, setBracketInputs] = useState(() => initialBracketInputs(initMol.mol))
   const [submitted,     setSubmitted]     = useState(false)
   const [results,       setResults]       = useState(null)
   const [hovered,       setHovered]       = useState(null)
@@ -372,7 +393,7 @@ export default function OxidationStates() {
     const [key, mol] = choices[Math.floor(Math.random() * choices.length)]
     setCurrent({ key, mol })
     setOxInputs({})
-    setBracketInputs({})
+    setBracketInputs(initialBracketInputs(mol))
     setSubmitted(false)
     setResults(null)
     setHovered(null)
@@ -403,7 +424,7 @@ export default function OxidationStates() {
 
   function handleReset() {
     setOxInputs({})
-    setBracketInputs({})
+    setBracketInputs(initialBracketInputs(current.mol))
     setSubmitted(false)
     setResults(null)
     setHovered(null)
@@ -426,8 +447,23 @@ export default function OxidationStates() {
 
   function handleSliderChange(numVal) {
     const str = fmt(numVal)
-    if (activeInput.type === 'ox') setOxInput(activeInput.key, str)
-    else setBracketInput(activeInput.key, str)
+    if (activeInput.type === 'ox') {
+      setOxInput(activeInput.key, str)
+    } else {
+      // Auto-fill any other brackets that share the same slots AND same total
+      const [ti, bi] = activeInput.key.split('-').map(Number)
+      const src = current.mol.tiers[ti].brackets[bi]
+      const updates = { [activeInput.key]: str }
+      current.mol.tiers.forEach((tier, tIdx) => {
+        tier.brackets.forEach((b, bIdx) => {
+          if (tIdx === ti && bIdx === bi) return
+          if (slotsEqual(b.slots, src.slots) && b.total === src.total) {
+            updates[`${tIdx}-${bIdx}`] = str
+          }
+        })
+      })
+      setBracketInputs(prev => ({ ...prev, ...updates }))
+    }
   }
 
   // Child bracket highlighting: only when child sums actually equal parent total
@@ -472,7 +508,7 @@ export default function OxidationStates() {
       alignItems: 'center',
       justifyContent: 'center',
       flex: 1,
-      padding: '1.5rem 1rem 5rem',  // extra bottom padding for slider panel
+      padding: '1.5rem 1rem',
     }}>
 
       {/* Difficulty selector */}
@@ -605,6 +641,7 @@ export default function OxidationStates() {
                 tierIndex={i}
                 numTiers={numTiers}
                 totalW={totalW}
+                polyIonGroups={mol.polyIonGroups}
                 hovered={hovered}
                 childBrackets={childBrackets}
                 bracketInputs={bracketInputs}
@@ -618,6 +655,16 @@ export default function OxidationStates() {
           </div>
 
         </div>
+
+        {/* Slider panel: absolute to the left */}
+        {!submitted && (
+          <SliderPanel
+            active={activeInput}
+            currentValue={sliderCurrentValue}
+            onChange={handleSliderChange}
+            onClose={() => setActiveInput(null)}
+          />
+        )}
 
         {/* Buttons: absolute to the right, doesn't affect centering */}
         <div style={{ position: 'absolute', left: '100%', top: 60, marginLeft: 24, display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -643,16 +690,6 @@ export default function OxidationStates() {
         </div>
 
       </div>
-
-      {/* Slider panel */}
-      {!submitted && (
-        <SliderPanel
-          active={activeInput}
-          currentValue={sliderCurrentValue}
-          onChange={handleSliderChange}
-          onClose={() => setActiveInput(null)}
-        />
-      )}
 
     </div>
   )
