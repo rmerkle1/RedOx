@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { MOLECULES } from '../data/molecules'
 
 const SLOT_W       = 110
@@ -15,63 +15,181 @@ function fmt(n) {
 
 function parseAnswer(str) {
   if (str == null) return null
-  const s = String(str).trim().replace(/−/g, '-')
+  const s = String(str).trim().replace(/[−–]/g, '-')
   if (s === '') return null
   const n = parseInt(s, 10)
   return isNaN(n) ? null : n
 }
 
-// ─── SmallInput ───────────────────────────────────────────────────────────────
+// Slider range per tier: last tier ±4 (molecule total ≈ 0),
+// 4-tier molecules get wide range, otherwise ±8 / ±16 per user spec.
+function getSliderRange(tierIndex, numTiers) {
+  if (tierIndex === numTiers - 1) return [-4, 4]
+  if (numTiers === 4) return [-20, 20]
+  if (tierIndex === 0) return [-8, 8]
+  return [-16, 16]
+}
 
-function SmallInput({ value, onChange, color, submitted, correct, width = 40 }) {
-  let bg, borderColor, textColor
-  if (!submitted) {
-    bg          = `rgba(255,255,255,0.05)`
-    borderColor = color
-    textColor   = color
-  } else if (correct) {
-    bg          = 'rgba(133,196,65,0.12)'
-    borderColor = '#85c441'
-    textColor   = '#85c441'
+// ─── SliderBox ────────────────────────────────────────────────────────────────
+// Replaces text input — shows the current value and opens the slider on click.
+
+function SliderBox({ value, color, isActive, onClick, submitted, correct, width = 44 }) {
+  const empty = value === '' || value == null
+
+  let bg, border, clr
+  if (submitted) {
+    bg     = correct ? 'rgba(133,196,65,0.12)' : 'rgba(233,23,122,0.12)'
+    border = correct ? '#85c441' : '#e9177a'
+    clr    = correct ? '#85c441' : '#e9177a'
+  } else if (isActive) {
+    bg     = `${color}28`
+    border = color
+    clr    = color
   } else {
-    bg          = 'rgba(233,23,122,0.12)'
-    borderColor = '#e9177a'
-    textColor   = '#e9177a'
+    bg     = 'rgba(255,255,255,0.04)'
+    border = empty ? `${color}50` : `${color}99`
+    clr    = empty ? `${color}60` : color
   }
 
   return (
-    <input
-      type="text"
-      value={value}
-      onChange={submitted ? undefined : e => onChange(e.target.value)}
-      readOnly={submitted}
-      placeholder="?"
+    <div
+      onClick={submitted ? undefined : onClick}
       style={{
         width,
+        height: 28,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
         background: bg,
-        border: `2px solid ${borderColor}`,
-        color: textColor,
-        textAlign: 'center',
-        fontWeight: 700,
-        fontSize: '0.8rem',
+        border: `2px solid ${border}`,
         borderRadius: 4,
-        padding: '2px 0',
-        outline: 'none',
-        fontFamily: 'inherit',
-        transition: 'background 0.15s, border-color 0.15s, color 0.15s',
-        boxSizing: 'border-box',
+        color: clr,
+        fontWeight: 700,
+        fontSize: '0.82rem',
+        cursor: submitted ? 'default' : 'pointer',
+        userSelect: 'none',
+        letterSpacing: '0.02em',
+        boxShadow: isActive ? `0 0 0 2px ${color}30` : 'none',
+        transition: 'background 0.15s, border-color 0.15s, box-shadow 0.15s',
       }}
-    />
+    >
+      {empty ? '?' : value}
+    </div>
+  )
+}
+
+// ─── SliderPanel ──────────────────────────────────────────────────────────────
+// Fixed bottom-center panel that appears when a SliderBox is clicked.
+
+function SliderPanel({ active, currentValue, onChange, onClose }) {
+  if (!active) return null
+  const { min, max, label, color } = active
+  const n = currentValue ?? 0
+
+  const btnStyle = (c = color) => ({
+    width: 30,
+    height: 30,
+    border: `1px solid ${c}55`,
+    borderRadius: 6,
+    background: 'transparent',
+    color: c,
+    fontWeight: 700,
+    fontSize: '1rem',
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+    transition: 'background 0.1s',
+  })
+
+  return (
+    <div style={{
+      position: 'fixed',
+      bottom: 24,
+      left: '50%',
+      transform: 'translateX(-50%)',
+      background: '#1a2535',
+      border: `1px solid ${color}44`,
+      borderRadius: 12,
+      padding: '12px 20px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: 12,
+      minWidth: 360,
+      zIndex: 100,
+      boxShadow: '0 8px 40px rgba(0,0,0,0.5)',
+    }}>
+      {/* Context label */}
+      <span style={{
+        color: '#64748b',
+        fontSize: '0.75rem',
+        fontWeight: 600,
+        letterSpacing: '0.06em',
+        textTransform: 'uppercase',
+        minWidth: 70,
+        flexShrink: 0,
+      }}>
+        {label}
+      </span>
+
+      {/* − button */}
+      <button
+        style={btnStyle()}
+        onClick={() => onChange(Math.max(min, n - 1))}
+      >−</button>
+
+      {/* Range slider */}
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={1}
+        value={n}
+        onChange={e => onChange(parseInt(e.target.value))}
+        style={{ flex: 1, accentColor: color, cursor: 'pointer' }}
+      />
+
+      {/* + button */}
+      <button
+        style={btnStyle()}
+        onClick={() => onChange(Math.min(max, n + 1))}
+      >+</button>
+
+      {/* Current value */}
+      <span style={{
+        color,
+        fontWeight: 800,
+        fontSize: '1.15rem',
+        minWidth: 38,
+        textAlign: 'center',
+        flexShrink: 0,
+        letterSpacing: '0.02em',
+      }}>
+        {fmt(n)}
+      </span>
+
+      {/* Done / close */}
+      <button
+        style={{ ...btnStyle('#475569'), fontSize: '0.85rem', width: 34, height: 30 }}
+        onClick={onClose}
+      >✓</button>
+    </div>
   )
 }
 
 // ─── AtomSlot ─────────────────────────────────────────────────────────────────
 
-function AtomSlot({ atom, slotIndex, defaultColor, hovered, oxInputs, setOxInput, submitted, results }) {
+function AtomSlot({ atom, slotIndex, defaultColor, hovered, oxInputs, activeInput,
+                    onOpenSlider, submitted, results }) {
   const isHighlighted = hovered !== null && hovered.bracket.slots.includes(slotIndex)
   const isDimmed      = hovered !== null && !isHighlighted
   const symbolColor   = isHighlighted ? hovered.bracket.color : '#f1f5f9'
   const subColor      = isHighlighted ? hovered.bracket.color : '#94a3b8'
+
+  const isActive = activeInput?.type === 'ox' && activeInput.key === slotIndex
+  const raw      = oxInputs[slotIndex] ?? ''
 
   return (
     <div style={{
@@ -82,24 +200,23 @@ function AtomSlot({ atom, slotIndex, defaultColor, hovered, oxInputs, setOxInput
       opacity: isDimmed ? 0.35 : 1,
       transition: 'opacity 0.18s ease',
     }}>
-      <SmallInput
-        value={oxInputs[slotIndex] || ''}
-        onChange={v => setOxInput(slotIndex, v)}
+      {/* Oxidation state slider box */}
+      <SliderBox
+        value={raw}
         color={defaultColor}
+        isActive={isActive}
+        onClick={() => onOpenSlider('ox', slotIndex, -8, 8, atom.symbol + ' ox. state', defaultColor)}
         submitted={submitted}
         correct={results?.ox[slotIndex]}
         width={40}
       />
+      {/* Wrong-answer hint */}
       {submitted && results?.ox[slotIndex] === false && (
-        <div style={{
-          color: '#64748b',
-          fontSize: '0.62rem',
-          textAlign: 'center',
-          marginTop: 2,
-        }}>
-          {`→ ${fmt(atom.oxidationState)}`}
+        <div style={{ color: '#64748b', fontSize: '0.6rem', marginTop: 2 }}>
+          → {fmt(atom.oxidationState)}
         </div>
       )}
+      {/* Symbol */}
       <div style={{
         fontSize: '3rem',
         fontWeight: 700,
@@ -111,12 +228,7 @@ function AtomSlot({ atom, slotIndex, defaultColor, hovered, oxInputs, setOxInput
       }}>
         {atom.symbol}
         {atom.subscript != null && (
-          <sub style={{
-            fontSize: '1.9rem',
-            color: subColor,
-            fontWeight: 600,
-            transition: 'color 0.18s ease',
-          }}>
+          <sub style={{ fontSize: '1.9rem', color: subColor, fontWeight: 600, transition: 'color 0.18s ease' }}>
             {atom.subscript}
           </sub>
         )}
@@ -127,12 +239,15 @@ function AtomSlot({ atom, slotIndex, defaultColor, hovered, oxInputs, setOxInput
 
 // ─── TierRow ──────────────────────────────────────────────────────────────────
 
-function TierRow({ tier, tierIndex, numSlots, hovered, bracketInputs, setBracketInput, submitted, results, onHover }) {
-  const totalW = numSlots * SLOT_W
-  const PAD    = 8
+function TierRow({ tier, tierIndex, numTiers, numSlots, hovered, childBrackets,
+                   bracketInputs, activeInput, onOpenSlider, submitted, results, onHover }) {
+  const totalW  = numSlots * SLOT_W
+  const PAD     = 8
+  const [sliderMin, sliderMax] = getSliderRange(tierIndex, numTiers)
 
   return (
     <div style={{ display: 'flex', alignItems: 'center' }}>
+      {/* Bracket area */}
       <div style={{ position: 'relative', width: totalW, height: TIER_H, flexShrink: 0 }}>
         {tier.brackets.map((b, i) => {
           const key      = `${tierIndex}-${i}`
@@ -141,8 +256,16 @@ function TierRow({ tier, tierIndex, numSlots, hovered, bracketInputs, setBracket
           const left     = s * SLOT_W + PAD
           const right    = (e + 1) * SLOT_W - PAD
           const w        = right - left
-          const isActive   = hovered !== null && hovered.bracket === b
-          const armOpacity = hovered !== null ? (isActive ? 1 : 0.3) : 1
+          const isActive = hovered !== null && hovered.bracket === b
+          const isChild  = childBrackets.has(b)
+          // Arm: only the hovered bracket is fully lit
+          const armOpacity = hovered !== null ? (isActive ? 1 : 0.25) : 1
+          // Label: hovered + child brackets stay lit
+          const lblOpacity = hovered !== null ? ((isActive || isChild) ? 1 : 0.25) : 1
+
+          const boxKey    = key
+          const isBoxActive = activeInput?.type === 'bracket' && activeInput.key === boxKey
+          const raw       = bracketInputs[key] ?? ''
 
           return (
             <div
@@ -156,11 +279,11 @@ function TierRow({ tier, tierIndex, numSlots, hovered, bracketInputs, setBracket
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                cursor: 'default',
               }}
               onMouseEnter={() => onHover({ bracket: b, tierIndex })}
               onMouseLeave={() => onHover(null)}
             >
+              {/* Bracket arm */}
               <div style={{
                 width: '100%',
                 height: ARM_H,
@@ -171,27 +294,20 @@ function TierRow({ tier, tierIndex, numSlots, hovered, bracketInputs, setBracket
                 opacity: armOpacity,
                 transition: 'opacity 0.18s ease',
               }} />
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                marginTop: 5,
-              }}>
-                <SmallInput
-                  value={bracketInputs[key] || ''}
-                  onChange={v => setBracketInput(key, v)}
+              {/* Total slider box + hint */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 5, opacity: lblOpacity, transition: 'opacity 0.18s ease' }}>
+                <SliderBox
+                  value={raw}
                   color={b.color}
+                  isActive={isBoxActive}
+                  onClick={() => onOpenSlider('bracket', key, sliderMin, sliderMax, tier.label, b.color)}
                   submitted={submitted}
                   correct={results?.brackets[key]}
                   width={40}
                 />
                 {submitted && results?.brackets[key] === false && (
-                  <div style={{
-                    color: '#64748b',
-                    fontSize: '0.62rem',
-                    marginTop: 2,
-                  }}>
-                    {`→ ${fmt(b.total)}`}
+                  <div style={{ color: '#64748b', fontSize: '0.6rem', marginTop: 2 }}>
+                    → {fmt(b.total)}
                   </div>
                 )}
               </div>
@@ -200,6 +316,7 @@ function TierRow({ tier, tierIndex, numSlots, hovered, bracketInputs, setBracket
         })}
       </div>
 
+      {/* Tier label */}
       <div style={{
         width: TIER_LABEL_W,
         paddingLeft: 18,
@@ -221,19 +338,27 @@ function TierRow({ tier, tierIndex, numSlots, hovered, bracketInputs, setBracket
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 export default function OxidationStates() {
-  const [difficulty, setDifficulty] = useState('medium')
+  const [difficulty, setDifficulty] = useState('easy')
   const [current, setCurrent] = useState(() => {
-    const pool = Object.entries(MOLECULES).filter(([, m]) => m.difficulty === 'medium')
+    const pool = Object.entries(MOLECULES).filter(([, m]) => m.difficulty === 'easy')
     const [key, mol] = pool[Math.floor(Math.random() * pool.length)]
     return { key, mol }
   })
-  const [oxInputs, setOxInputs] = useState({})
+  const [oxInputs,      setOxInputs]      = useState({})
   const [bracketInputs, setBracketInputs] = useState({})
-  const [submitted, setSubmitted] = useState(false)
-  const [results, setResults] = useState(null)
-  const [hovered, setHovered] = useState(null)
+  const [submitted,     setSubmitted]     = useState(false)
+  const [results,       setResults]       = useState(null)
+  const [hovered,       setHovered]       = useState(null)
+  const [activeInput,   setActiveInput]   = useState(null)
 
-  const setOxInput     = (i, v) => setOxInputs(prev => ({ ...prev, [i]: v }))
+  // Close slider on Escape
+  useEffect(() => {
+    const onKey = e => { if (e.key === 'Escape') setActiveInput(null) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+
+  const setOxInput      = (i, v) => setOxInputs(prev => ({ ...prev, [i]: v }))
   const setBracketInput = (k, v) => setBracketInputs(prev => ({ ...prev, [k]: v }))
 
   function pickNext(diff) {
@@ -246,6 +371,7 @@ export default function OxidationStates() {
     setSubmitted(false)
     setResults(null)
     setHovered(null)
+    setActiveInput(null)
   }
 
   function handleDifficultyChange(diff) {
@@ -254,6 +380,7 @@ export default function OxidationStates() {
   }
 
   function handleSubmit() {
+    setActiveInput(null)
     const { mol } = current
     const oxR = {}
     mol.atoms.forEach((atom, i) => {
@@ -275,25 +402,52 @@ export default function OxidationStates() {
     setSubmitted(false)
     setResults(null)
     setHovered(null)
+    setActiveInput(null)
   }
 
+  // Open the slider panel for a given box
+  function handleOpenSlider(type, key, min, max, label, color) {
+    setActiveInput({ type, key, min, max, label, color })
+  }
+
+  // Slider panel value = parsed current input, defaulting to 0
+  const sliderCurrentValue = (() => {
+    if (!activeInput) return 0
+    const raw = activeInput.type === 'ox'
+      ? oxInputs[activeInput.key]
+      : bracketInputs[activeInput.key]
+    return parseAnswer(raw) ?? 0
+  })()
+
+  function handleSliderChange(numVal) {
+    const str = fmt(numVal)
+    if (activeInput.type === 'ox') setOxInput(activeInput.key, str)
+    else setBracketInput(activeInput.key, str)
+  }
+
+  // Child bracket highlighting: only when child sums actually equal parent total
   const childBrackets = (() => {
     if (!hovered || hovered.tierIndex === 0) return new Set()
     const prevTier    = current.mol.tiers[hovered.tierIndex - 1]
     const parentSlots = new Set(hovered.bracket.slots)
-    return new Set(prevTier.brackets.filter(b => b.slots.every(s => parentSlots.has(s))))
+    const children    = prevTier.brackets.filter(b => b.slots.every(s => parentSlots.has(s)))
+    const childSum    = children.reduce((sum, b) => sum + b.total, 0)
+    // Only highlight if sums match — suppresses the per-ion tier in 4-tier molecules
+    if (childSum !== hovered.bracket.total) return new Set()
+    return new Set(children)
   })()
 
-  const mol            = current.mol
-  const numSlots       = mol.atoms.length
-  const totalW         = numSlots * SLOT_W
+  const mol       = current.mol
+  const numSlots  = mol.atoms.length
+  const numTiers  = mol.tiers.length
+  const totalW    = numSlots * SLOT_W
+
   const atomDefaultColors = mol.atoms.map((_, i) => {
     const b = mol.tiers[0].brackets.find(b => b.slots.includes(i))
     return b ? b.color : '#f1f5f9'
   })
 
   const diffColors = { easy: '#85c441', medium: '#fdb714', hard: '#e9177a' }
-
   const btnBase = {
     padding: '8px 22px',
     borderRadius: 6,
@@ -301,7 +455,8 @@ export default function OxidationStates() {
     fontSize: '0.875rem',
     cursor: 'pointer',
     fontFamily: 'inherit',
-    transition: 'all 0.15s',
+    border: 'none',
+    transition: 'opacity 0.15s',
   }
 
   return (
@@ -311,8 +466,7 @@ export default function OxidationStates() {
       alignItems: 'center',
       justifyContent: 'center',
       flex: 1,
-      padding: '1.5rem 1rem',
-      gap: 0,
+      padding: '1.5rem 1rem 5rem',  // extra bottom padding for slider panel
     }}>
 
       {/* Difficulty selector */}
@@ -324,8 +478,7 @@ export default function OxidationStates() {
         marginBottom: 20,
       }}>
         {['easy', 'medium', 'hard'].map(d => (
-          <button
-            key={d}
+          <button key={d}
             onClick={() => handleDifficultyChange(d)}
             style={{
               border: 'none',
@@ -346,17 +499,28 @@ export default function OxidationStates() {
         ))}
       </div>
 
-      {/* Molecule name */}
-      <p style={{
-        color: '#475569',
-        fontSize: '0.8rem',
-        letterSpacing: '0.12em',
-        textTransform: 'uppercase',
-        marginBottom: 16,
-        fontWeight: 500,
-      }}>
-        {mol.name}
-      </p>
+      {/* Formula + name */}
+      <div style={{ textAlign: 'center', marginBottom: 20 }}>
+        <div style={{
+          fontSize: '1.5rem',
+          fontWeight: 700,
+          color: '#f1f5f9',
+          letterSpacing: '0.03em',
+          lineHeight: 1.2,
+          marginBottom: 4,
+        }}>
+          {mol.formula}
+        </div>
+        <div style={{
+          fontSize: '0.75rem',
+          color: '#475569',
+          letterSpacing: '0.12em',
+          textTransform: 'uppercase',
+          fontWeight: 500,
+        }}>
+          {mol.name}
+        </div>
+      </div>
 
       {/* Atom row */}
       <div style={{ display: 'flex', width: totalW + TIER_LABEL_W }}>
@@ -369,7 +533,8 @@ export default function OxidationStates() {
               defaultColor={atomDefaultColors[i]}
               hovered={hovered}
               oxInputs={oxInputs}
-              setOxInput={setOxInput}
+              activeInput={activeInput}
+              onOpenSlider={handleOpenSlider}
               submitted={submitted}
               results={results}
             />
@@ -387,10 +552,13 @@ export default function OxidationStates() {
             key={i}
             tier={tier}
             tierIndex={i}
+            numTiers={numTiers}
             numSlots={numSlots}
             hovered={hovered}
+            childBrackets={childBrackets}
             bracketInputs={bracketInputs}
-            setBracketInput={setBracketInput}
+            activeInput={activeInput}
+            onOpenSlider={handleOpenSlider}
             submitted={submitted}
             results={results}
             onHover={setHovered}
@@ -402,41 +570,34 @@ export default function OxidationStates() {
       <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginTop: 28 }}>
         <button
           onClick={handleReset}
-          style={{
-            ...btnBase,
-            background: '#1e293b',
-            border: '1px solid #334155',
-            color: '#94a3b8',
-          }}
+          style={{ ...btnBase, background: '#1e293b', border: '1px solid #334155', color: '#94a3b8' }}
         >
           Reset
         </button>
         <button
           onClick={handleSubmit}
           disabled={submitted}
-          style={{
-            ...btnBase,
-            background: '#00addb',
-            border: 'none',
-            color: '#0f172a',
-            opacity: submitted ? 0.4 : 1,
-            cursor: submitted ? 'default' : 'pointer',
-          }}
+          style={{ ...btnBase, background: '#00addb', color: '#0f172a', opacity: submitted ? 0.4 : 1, cursor: submitted ? 'default' : 'pointer' }}
         >
           Submit
         </button>
         <button
           onClick={() => pickNext(difficulty)}
-          style={{
-            ...btnBase,
-            background: '#85c441',
-            border: 'none',
-            color: '#0f172a',
-          }}
+          style={{ ...btnBase, background: '#85c441', color: '#0f172a' }}
         >
           Next
         </button>
       </div>
+
+      {/* Slider panel */}
+      {!submitted && (
+        <SliderPanel
+          active={activeInput}
+          currentValue={sliderCurrentValue}
+          onChange={handleSliderChange}
+          onClose={() => setActiveInput(null)}
+        />
+      )}
 
     </div>
   )
