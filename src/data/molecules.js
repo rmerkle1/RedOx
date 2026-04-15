@@ -341,9 +341,9 @@ export const MOLECULES = {
     tiers: [
       // Tier 1: total for each element group
       { label: 'Element',   brackets: [
-        { slots: [0],       total:  +6, color: C.teal   },  // 3×(+2)
-        { slots: [1],       total: +10, color: C.purple },  // 2×(+5)
-        { slots: [2],       total: -16, color: C.purple },  // 8×(−2)
+        { slots: [0],       total:  +6, color: C.teal   },  // 3×(+2) — outside parens, full total
+        { slots: [1],       total:  +5, color: C.purple },  // 1×(+5) — per one PO₄ unit
+        { slots: [2],       total:  -8, color: C.purple },  // 4×(−2) — per one PO₄ unit
       ] },
       // Tier 2: charge of ONE polyatomic ion unit
       { label: 'Polyatomic Ion', brackets: [
@@ -371,9 +371,9 @@ export const MOLECULES = {
     polyIonGroups: [{ slots: [1, 2], groupSubscript: 2 }],
     tiers: [
       { label: 'Element',   brackets: [
-        { slots: [0],       total:  +2, color: C.teal   },  // 1×(+2)
-        { slots: [1],       total: +10, color: C.purple },  // 2×(+5)
-        { slots: [2],       total: -12, color: C.purple },  // 6×(−2)
+        { slots: [0],       total:  +2, color: C.teal   },  // 1×(+2) — outside parens, full total
+        { slots: [1],       total:  +5, color: C.purple },  // 1×(+5) — per one NO₃ unit
+        { slots: [2],       total:  -6, color: C.purple },  // 3×(−2) — per one NO₃ unit
       ] },
       { label: 'Polyatomic Ion', brackets: [
         { slots: [0],       total:  +2, color: C.teal   },  // one Ca²⁺
@@ -399,9 +399,9 @@ export const MOLECULES = {
     polyIonGroups: [{ slots: [1, 2], groupSubscript: 3 }],
     tiers: [
       { label: 'Element',   brackets: [
-        { slots: [0],       total: +3, color: C.teal   },  // 1×(+3)
-        { slots: [1],       total: -6, color: C.purple },  // 3×(−2)
-        { slots: [2],       total: +3, color: C.purple },  // 3×(+1)
+        { slots: [0],       total: +3, color: C.teal   },  // 1×(+3) — outside parens, full total
+        { slots: [1],       total: -2, color: C.purple },  // 1×(−2) — per one OH unit
+        { slots: [2],       total: +1, color: C.purple },  // 1×(+1) — per one OH unit
       ] },
       { label: 'Polyatomic Ion', brackets: [
         { slots: [0],       total: +3, color: C.teal   },  // one Al³⁺

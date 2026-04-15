@@ -31,14 +31,6 @@ function getSliderRange(tierIndex, numTiers) {
   return [-12, 12]
 }
 
-// Pre-populate the last tier's bracket inputs with '0' (molecule total is almost always 0)
-function initialBracketInputs(mol) {
-  const lastIdx = mol.tiers.length - 1
-  const result = {}
-  mol.tiers[lastIdx].brackets.forEach((_, bi) => { result[`${lastIdx}-${bi}`] = '0' })
-  return result
-}
-
 // Deep-equal slots (order-independent)
 function slotsEqual(a, b) {
   if (a.length !== b.length) return false
@@ -363,15 +355,13 @@ function TierRow({ tier, tierIndex, numTiers, totalW, polyIonGroups, hovered, ch
 
 export default function OxidationStates() {
   const [difficulty, setDifficulty] = useState('easy')
-  // Compute initial molecule once so bracketInputs can reference the same mol
-  const [initMol] = useState(() => {
+  const [current, setCurrent] = useState(() => {
     const pool = Object.entries(MOLECULES).filter(([, m]) => m.difficulty === 'easy')
     const [key, mol] = pool[Math.floor(Math.random() * pool.length)]
     return { key, mol }
   })
-  const [current, setCurrent] = useState(initMol)
   const [oxInputs,      setOxInputs]      = useState({})
-  const [bracketInputs, setBracketInputs] = useState(() => initialBracketInputs(initMol.mol))
+  const [bracketInputs, setBracketInputs] = useState({})
   const [submitted,     setSubmitted]     = useState(false)
   const [results,       setResults]       = useState(null)
   const [hovered,       setHovered]       = useState(null)
@@ -393,7 +383,7 @@ export default function OxidationStates() {
     const [key, mol] = choices[Math.floor(Math.random() * choices.length)]
     setCurrent({ key, mol })
     setOxInputs({})
-    setBracketInputs(initialBracketInputs(mol))
+    setBracketInputs({})
     setSubmitted(false)
     setResults(null)
     setHovered(null)
@@ -424,16 +414,23 @@ export default function OxidationStates() {
 
   function handleReset() {
     setOxInputs({})
-    setBracketInputs(initialBracketInputs(current.mol))
+    setBracketInputs({})
     setSubmitted(false)
     setResults(null)
     setHovered(null)
     setActiveInput(null)
   }
 
-  // Open the slider panel for a given box
+  // Open the slider panel for a given box.
+  // For last-tier brackets with no value yet, default to '0' on first click.
   function handleOpenSlider(type, key, min, max, label, color) {
     setActiveInput({ type, key, min, max, label, color })
+    if (type === 'bracket' && !bracketInputs[key]) {
+      const [ti] = key.split('-').map(Number)
+      if (ti === current.mol.tiers.length - 1) {
+        setBracketInputs(prev => ({ ...prev, [key]: '0' }))
+      }
+    }
   }
 
   // Slider panel value = parsed current input, defaulting to 0
