@@ -40,7 +40,7 @@ export const MOLECULES = {
 
   NaPlus: {
     difficulty: 'easy', name: 'Sodium Ion', formula: 'Na⁺',
-    atoms: [ { symbol: 'Na', subscript: null, oxidationState: +1 } ],
+    atoms: [ { symbol: 'Na', subscript: null, oxidationState: +1, ionCharge: '⁺' } ],
     tiers: [
       { label: 'Ion', brackets: [ { slots: [0], total: +1, color: C.teal } ] },
     ],
@@ -48,7 +48,7 @@ export const MOLECULES = {
 
   ClMinus: {
     difficulty: 'easy', name: 'Chloride Ion', formula: 'Cl⁻',
-    atoms: [ { symbol: 'Cl', subscript: null, oxidationState: -1 } ],
+    atoms: [ { symbol: 'Cl', subscript: null, oxidationState: -1, ionCharge: '⁻' } ],
     tiers: [
       { label: 'Ion', brackets: [ { slots: [0], total: -1, color: C.teal } ] },
     ],
@@ -56,7 +56,7 @@ export const MOLECULES = {
 
   Mg2Plus: {
     difficulty: 'easy', name: 'Magnesium Ion', formula: 'Mg²⁺',
-    atoms: [ { symbol: 'Mg', subscript: null, oxidationState: +2 } ],
+    atoms: [ { symbol: 'Mg', subscript: null, oxidationState: +2, ionCharge: '²⁺' } ],
     tiers: [
       { label: 'Ion', brackets: [ { slots: [0], total: +2, color: C.teal } ] },
     ],
@@ -64,7 +64,7 @@ export const MOLECULES = {
 
   Fe3Plus: {
     difficulty: 'easy', name: 'Iron(III) Ion', formula: 'Fe³⁺',
-    atoms: [ { symbol: 'Fe', subscript: null, oxidationState: +3 } ],
+    atoms: [ { symbol: 'Fe', subscript: null, oxidationState: +3, ionCharge: '³⁺' } ],
     tiers: [
       { label: 'Ion', brackets: [ { slots: [0], total: +3, color: C.teal } ] },
     ],

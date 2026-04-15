@@ -28,7 +28,7 @@ function getSliderRange(tierIndex, numTiers) {
   if (tierIndex === numTiers - 1) return [-4, 4]
   if (numTiers === 4) return [-20, 20]
   if (tierIndex === 0) return [-8, 8]
-  return [-16, 16]
+  return [-12, 12]
 }
 
 // ─── SliderBox ────────────────────────────────────────────────────────────────
@@ -232,6 +232,11 @@ function AtomSlot({ atom, slotIndex, defaultColor, hovered, oxInputs, activeInpu
           <sub style={{ fontSize: '1.9rem', color: subColor, fontWeight: 600, transition: 'color 0.18s ease' }}>
             {atom.subscript}
           </sub>
+        )}
+        {atom.ionCharge && (
+          <sup style={{ fontSize: '1.4rem', color: subColor, fontWeight: 600, transition: 'color 0.18s ease' }}>
+            {atom.ionCharge}
+          </sup>
         )}
       </div>
     </div>
@@ -523,10 +528,10 @@ export default function OxidationStates() {
         </div>
       </div>
 
-      {/* Molecule content + buttons side by side */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 28 }}>
+      {/* Molecule content — centered; buttons hang off the right via absolute positioning */}
+      <div style={{ position: 'relative' }}>
 
-        {/* Left: atom row + tier rows */}
+        {/* Atom row + tier rows */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
 
           {/* Atom row — with optional polyatomic-group parentheses */}
@@ -614,8 +619,8 @@ export default function OxidationStates() {
 
         </div>
 
-        {/* Right: vertically stacked buttons */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingTop: 100, flexShrink: 0 }}>
+        {/* Buttons: absolute to the right, doesn't affect centering */}
+        <div style={{ position: 'absolute', left: '100%', top: 60, marginLeft: 24, display: 'flex', flexDirection: 'column', gap: 10 }}>
           <button
             onClick={handleSubmit}
             disabled={submitted}
