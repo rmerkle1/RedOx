@@ -22,13 +22,8 @@ function parseAnswer(str) {
   return isNaN(n) ? null : n
 }
 
-// Slider range per tier: last tier ±4 (molecule total ≈ 0),
-// 4-tier molecules get wide range, otherwise ±8 / ±16 per user spec.
-function getSliderRange(tierIndex, numTiers) {
-  if (tierIndex === numTiers - 1) return [-4, 4]
-  if (numTiers === 4) return [-20, 20]
-  if (tierIndex === 0) return [-8, 8]
-  return [-12, 12]
+function getSliderRange() {
+  return [-10, 10]
 }
 
 // Deep-equal slots (order-independent)
@@ -42,7 +37,7 @@ function slotsEqual(a, b) {
 // ─── SliderBox ────────────────────────────────────────────────────────────────
 // Replaces text input — shows the current value and opens the slider on click.
 
-function SliderBox({ value, color, isActive, onClick, submitted, correct, width = 44 }) {
+function SliderBox({ value, color, isActive, onClick, submitted, correct, width = 44, tutorialId }) {
   const empty = value === '' || value == null
 
   let bg, border, clr
@@ -63,6 +58,7 @@ function SliderBox({ value, color, isActive, onClick, submitted, correct, width 
   return (
     <div
       onClick={submitted ? undefined : onClick}
+      data-tutorial={tutorialId || undefined}
       style={{
         width,
         height: 28,
@@ -95,6 +91,7 @@ function SliderPanel({ active, currentValue, onChange, onClose }) {
   const { min, max, label, color } = active
   const n = currentValue ?? 0
 
+
   const btnStyle = (c = color) => ({
     width: 28,
     height: 28,
@@ -115,12 +112,14 @@ function SliderPanel({ active, currentValue, onChange, onClose }) {
   })
 
   return (
-    <div style={{
-      position: 'absolute',
-      right: 'calc(100% + 20px)',
-      top: 60,
-      background: '#1a2535',
-      border: `1px solid ${color}44`,
+    <div
+      data-tutorial="slider-panel"
+      style={{
+        position: 'absolute',
+        right: 'calc(100% + 20px)',
+        top: 0,
+        background: '#1a2535',
+        border: `1px solid ${color}44`,
       borderRadius: 12,
       padding: '10px 10px',
       display: 'flex',
@@ -210,10 +209,11 @@ function AtomSlot({ atom, slotIndex, defaultColor, hovered, oxInputs, activeInpu
         value={raw}
         color={defaultColor}
         isActive={isActive}
-        onClick={() => onOpenSlider('ox', slotIndex, -8, 8, atom.symbol + ' ox. state', defaultColor)}
+        onClick={() => onOpenSlider('ox', slotIndex, -10, 10, atom.symbol + ' ox. state', defaultColor)}
         submitted={submitted}
         correct={results?.ox[slotIndex]}
         width={40}
+        tutorialId={`ox-${slotIndex}`}
       />
       {/* Wrong-answer hint */}
       {submitted && results?.ox[slotIndex] === false && (
@@ -252,7 +252,7 @@ function AtomSlot({ atom, slotIndex, defaultColor, hovered, oxInputs, activeInpu
 function TierRow({ tier, tierIndex, numTiers, totalW, hovered, childBrackets,
                    bracketInputs, activeInput, onOpenSlider, submitted, results, onHover }) {
   const PAD     = 8
-  const [sliderMin, sliderMax] = getSliderRange(tierIndex, numTiers)
+  const [sliderMin, sliderMax] = getSliderRange()
 
   return (
     <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -313,6 +313,7 @@ function TierRow({ tier, tierIndex, numTiers, totalW, hovered, childBrackets,
                   submitted={submitted}
                   correct={results?.brackets[key]}
                   width={40}
+                  tutorialId={`bracket-${tierIndex}-${i}`}
                 />
                 {submitted && results?.brackets[key] === false && (
                   <div style={{ color: '#64748b', fontSize: '0.6rem', marginTop: 2 }}>
@@ -346,7 +347,7 @@ function TierRow({ tier, tierIndex, numTiers, totalW, hovered, childBrackets,
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
-export default function OxidationStates() {
+export default function OxidationStates({ tutorialControl, onTutorialEvent }) {
   const [difficulty, setDifficulty] = useState('easy')
   const [current, setCurrent] = useState(() => {
     const pool = Object.entries(MOLECULES).filter(([, m]) => m.difficulty === 'easy')
@@ -366,6 +367,33 @@ export default function OxidationStates() {
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [])
+
+  // Emit tutorial events when inputs change
+  useEffect(() => {
+    onTutorialEvent?.({ type: 'oxInputs', value: oxInputs })
+  }, [oxInputs]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    onTutorialEvent?.({ type: 'bracketInputs', value: bracketInputs })
+  }, [bracketInputs]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Tutorial: force a specific molecule
+  useEffect(() => {
+    const key = tutorialControl?.molecule
+    if (!key || !MOLECULES[key]) return
+    setCurrent({ key, mol: MOLECULES[key] })
+    setOxInputs({})
+    setBracketInputs({})
+    setSubmitted(false)
+    setResults(null)
+    setHovered(null)
+    setActiveInput(null)
+  }, [tutorialControl?.molecule])
+
+  // Tutorial: force a specific difficulty
+  useEffect(() => {
+    if (tutorialControl?.difficulty) setDifficulty(tutorialControl.difficulty)
+  }, [tutorialControl?.difficulty])
 
   const setOxInput      = (i, v) => setOxInputs(prev => ({ ...prev, [i]: v }))
   const setBracketInput = (k, v) => setBracketInputs(prev => ({ ...prev, [k]: v }))
@@ -496,9 +524,8 @@ export default function OxidationStates() {
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
-      justifyContent: 'center',
       flex: 1,
-      padding: '1.5rem 1rem',
+      padding: '2rem 1rem',
     }}>
 
       {/* Difficulty selector */}
@@ -511,6 +538,7 @@ export default function OxidationStates() {
       }}>
         {['easy', 'medium', 'hard'].map(d => (
           <button key={d}
+            data-tutorial={`difficulty-${d}`}
             onClick={() => handleDifficultyChange(d)}
             style={{
               border: 'none',
@@ -558,7 +586,7 @@ export default function OxidationStates() {
       <div style={{ position: 'relative' }}>
 
         {/* Atom row + tier rows */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <div data-tutorial="molecule-area" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
 
           {/* Atom row — with optional polyatomic-group parentheses */}
           <div style={{ display: 'flex', width: totalW + TIER_LABEL_W }}>
@@ -656,8 +684,9 @@ export default function OxidationStates() {
         )}
 
         {/* Buttons: absolute to the right, doesn't affect centering */}
-        <div style={{ position: 'absolute', left: '100%', top: 60, marginLeft: 24, display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ position: 'absolute', left: '100%', top: 0, marginLeft: 24, display: 'flex', flexDirection: 'column', gap: 10 }}>
           <button
+            data-tutorial="submit-btn"
             onClick={handleSubmit}
             disabled={submitted}
             style={{ ...btnBase, background: '#00addb', color: '#0f172a', opacity: submitted ? 0.4 : 1, cursor: submitted ? 'default' : 'pointer' }}
