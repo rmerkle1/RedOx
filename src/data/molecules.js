@@ -32,14 +32,6 @@ export const MOLECULES = {
     ],
   },
 
-  N2: {
-    difficulty: 'easy', name: 'Nitrogen Gas', formula: 'N₂',
-    atoms: [ { symbol: 'N', subscript: 2, oxidationState: 0 } ],
-    tiers: [
-      { label: 'Molecule', brackets: [ { slots: [0], total: 0, color: C.yellow } ] },
-    ],
-  },
-
   NaPlus: {
     difficulty: 'easy', name: 'Sodium Ion', formula: 'Na⁺',
     atoms: [ { symbol: 'Na', subscript: null, oxidationState: +1, ionCharge: '⁺' } ],
@@ -125,6 +117,40 @@ export const MOLECULES = {
     ],
   },
 
+    SO3: {
+    difficulty: 'easy', name: 'Sulfur Trioxide', formula: 'SO₃',
+    atoms: [
+      { symbol: 'S', subscript: null, oxidationState: +6 },
+      { symbol: 'O', subscript: 3,    oxidationState: -2 },
+    ],
+    tiers: [
+      { label: 'Element',  brackets: [
+        { slots: [0], total: +6, color: C.teal   },
+        { slots: [1], total: -6, color: C.purple },
+      ] },
+      { label: 'Molecule', brackets: [
+        { slots: [0, 1], total: 0, color: C.yellow },
+      ] },
+    ],
+  },
+
+    N2H4: {
+    difficulty: 'easy', name: 'Hydrazine', formula: 'N₂H₄',
+    atoms: [
+      { symbol: 'N', subscript: 2, oxidationState: -2 },
+      { symbol: 'H', subscript: 4, oxidationState: +1 },
+    ],
+    tiers: [
+      { label: 'Element',  brackets: [
+        { slots: [0], total: -4, color: C.teal   },
+        { slots: [1], total: +4, color: C.purple },
+      ] },
+      { label: 'Molecule', brackets: [
+        { slots: [0, 1], total: 0, color: C.yellow },
+      ] },
+    ],
+  },
+
   // Easy ionic compounds — no Element tier; atoms are monoatomic ions
 
   NaCl: {
@@ -174,6 +200,40 @@ export const MOLECULES = {
       ] },
       { label: 'Molecule', brackets: [
         { slots: [0, 1], total: 0, color: C.yellow },
+      ] },
+    ],
+  },
+
+    Fe2O3: {
+    difficulty: 'easy', name: 'Iron (III) Oxide', formula: 'Fe₂O₃',
+    atoms: [
+      { symbol: 'Fe', subscript: 2, oxidationState: +3 },
+      { symbol: 'O', subscript: 3, oxidationState: -2 },
+    ],
+    tiers: [
+      { label: 'Ion',      brackets: [
+        { slots: [0], total: +6, color: C.teal   },
+        { slots: [1], total: -6, color: C.purple },
+      ] },
+      { label: 'Molecule', brackets: [
+        { slots: [0, 1], total: 0, color: C.yellow },
+      ] },
+    ],
+  },
+
+    ClO2Minus: {
+    difficulty: 'easy', name: 'Chlorite', formula: 'ClO₂⁻',
+    atoms: [
+      { symbol: 'Cl', subscript: null, oxidationState: +3 },
+      { symbol: 'O', subscript: 2, oxidationState: -2, ionCharge: '⁻' },
+    ],
+    tiers: [
+      { label: 'Ion',      brackets: [
+        { slots: [0], total: +3, color: C.teal   },
+        { slots: [1], total: -4, color: C.purple },
+      ] },
+      { label: 'Molecule', brackets: [
+        { slots: [0, 1], total: -1, color: C.yellow },
       ] },
     ],
   },
