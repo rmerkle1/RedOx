@@ -247,7 +247,67 @@ export const REACTIONS = [
     ],
   },
 
-  // ── Reaction 5: BaCl₂ + H₂SO₄ → BaSO₄ + 2HCl  (NOT redox) ─────────────
+    // ── Reaction 5: 6K + Au₂O₃ → 3K₂O + 2Au  (redox) ─────────────────────────
+  {
+    id: 'r2',
+    isRedox: true,
+    oxidized: 'K',   // K: 0 → +1
+    reduced:  'Au',    // Au:  +3 → 0
+    species: [
+      {
+        id: 'r2_K', coefficient: 1, side: 'reactant',
+        name: 'Potassium (solid)', formula: 'K',
+        atoms: [ { symbol: 'K', subscript: null, oxidationState: 0 } ],
+        tiers: [
+          { label: 'Molecule', brackets: [ { slots: [0], total: 0, color: C.yellow } ] },
+        ],
+      },
+      {
+        id: 'r2_Au2O3', coefficient: 2, side: 'reactant',
+        name: 'Gold (III) Oxide', formula: 'Au₂O₃',
+        atoms: [
+          { symbol: 'Au',  subscript: 2, oxidationState: +3 },
+          { symbol: 'O', subscript: 3, oxidationState: -2 },
+        ],
+        tiers: [
+          { label: 'Ion',      brackets: [
+            { slots: [0], total: +6, color: C.teal   },
+            { slots: [1], total: -6, color: C.purple },
+          ] },
+          { label: 'Molecule', brackets: [
+            { slots: [0, 1], total: 0, color: C.yellow },
+          ] },
+        ],
+      },
+      {
+        id: 'r2_K2O', coefficient: 1, side: 'product',
+        name: 'Potassium Oxide', formula: 'K₂O',
+        atoms: [
+          { symbol: 'K', subscript: 2, oxidationState: +1 },
+          { symbol: 'O', subscript: null,    oxidationState: -2 },
+        ],
+        tiers: [
+          { label: 'Ion',      brackets: [
+            { slots: [0], total: +2, color: C.teal   },
+            { slots: [1], total: -2, color: C.purple },
+          ] },
+          { label: 'Molecule', brackets: [
+            { slots: [0, 1], total: 0, color: C.yellow },
+          ] },
+        ],
+      },
+      {
+        id: 'r2_Au', coefficient: 1, side: 'product',
+        name: 'Gold (solid)', formula: 'Au',
+        atoms: [ { symbol: 'Au', subscript: null, oxidationState: 0 } ],
+        tiers: [
+          { label: 'Molecule', brackets: [ { slots: [0], total: 0, color: C.yellow } ] },
+        ],
+      },
+    ],
+  },
+
+  // ── Reaction 6: BaCl₂ + H₂SO₄ → BaSO₄ + 2HCl  (NOT redox) ─────────────
   {
     id: 'r5',
     isRedox: false,
